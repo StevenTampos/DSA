@@ -13,12 +13,10 @@ void initialize (EPtr L) {
 }
 
 void insertPos(EPtr L, int data, int position) {
-    // return if invalid
     if(position > L->count) {
         return;
     }
     
-    // insert directly to the position if no number
     if(position >= L->count) {
         L->elem[position] = data;
         L->count += 1;
@@ -33,7 +31,6 @@ void insertPos(EPtr L, int data, int position) {
 }
 
 void deletePos(EPtr L, int position) {
-    // return if invalid
     if(position > L->count) {
         return;
     }
@@ -55,9 +52,8 @@ int locate(EPtr L, int data) {
 }
 
 void insertSorted(EPtr L, int data) {
-    int pos = L->count;  // default insert at the end
+    int pos = L->count;
 
-    // find correct position
     for (int i = 0; i < L->count; i++) {
         if (data < L->elem[i]) {
             pos = i;
@@ -70,7 +66,6 @@ void insertSorted(EPtr L, int data) {
         L->elem[j + 1] = L->elem[j];
     }
 
-    // insert data
     L->elem[pos] = data;
     L->count += 1;
 }
@@ -83,10 +78,10 @@ void display(EPtr L) {
 }
 
 int main() {
-    Etype L; // create list
+    Etype L;
     int found;
     
-    initialize(&L); // set count to 0 or initialize
+    initialize(&L);
     insertPos(&L, 1, 0);
     insertPos(&L, 3, 1);
     insertPos(&L, 6, 2);
