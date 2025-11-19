@@ -38,11 +38,9 @@ void deleteNode(BST* B, int value) {
         free(*trav);
         *trav = NULL;
     } else if((*trav)->lc == NULL || (*trav)->rc == NULL) { //if only has one child
-        if((*trav)->lc != NULL) {
-            *trav = (*trav)->lc;
-        } else {
-            *trav = (*trav)->rc;
-        }
+        Node *child = ((*trav)->lc != NULL ? (*trav)->lc : (*trav)->rc);
+        free(*trav);
+        *trav = child;
     } else if((*trav)->lc != NULL && (*trav)->rc != NULL) { //have both child
         
     }
@@ -66,12 +64,14 @@ int main() {
     insert(&B, 1);
     
     //inorder print
+    printf("After inserting: ");
     printTree(B);
     
     deleteNode(&B, 12);
     
     
     //inorder print
+    printf("\nAfter deleting: ");
     printTree(B);
     return 0;
 }
