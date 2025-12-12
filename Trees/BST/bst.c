@@ -7,6 +7,14 @@ typedef struct node {
     struct node *rc;
 } Node, *BST;
 
+// Helper to find the minimum value node in a subtree
+Node* findMin(Node* node) {
+    while(node->lc != NULL) {
+        node = node->lc;
+    }
+    return node;
+}
+
 void insert(BST* B, int value) {
     BST* trav = B;
     while(*trav != NULL && (*trav)->data != value) {
@@ -25,24 +33,35 @@ void insert(BST* B, int value) {
 
 void deleteNode(BST* B, int value) {
     BST* trav = B;
+    // Find the node to delete
     while(*trav != NULL && (*trav)->data != value) {
         trav = ((*trav)->data > value ? &(*trav)->lc : &(*trav)->rc);
     }
     
     if(*trav == NULL) {
-        return;
+        return; // Node not found
     }
     
-    //if no child
-    if((*trav)->lc == NULL && (*trav)->rc == NULL) {
-        free(*trav);
-        *trav = NULL;
-    } else if((*trav)->lc == NULL || (*trav)->rc == NULL) { //if only has one child
-        Node *child = ((*trav)->lc != NULL ? (*trav)->lc : (*trav)->rc);
-        free(*trav);
-        *trav = child;
-    } else if((*trav)->lc != NULL && (*trav)->rc != NULL) { //have both child
+    // Node with only one child or no child
+    if((*trav)->lc == NULL) {
+        Node *temp = *trav;
+        *trav = (*trav)->rc;
+        free(temp);
+    } else if((*trav)->rc == NULL) {
+        Node *temp = *trav;
+        *trav = (*trav)->lc;
+        free(temp);
+    } else { 
+        // Node with two children: 
+        // Get the inorder successor (smallest in the right subtree)
+        Node *temp = findMin((*trav)->rc);
         
+        // Copy the inorder successor's content to this node
+        (*trav)->data = temp->data;
+        
+        // Delete the inorder successor
+        // Note: We use recursion on the right subtree to delete the duplicate value
+        deleteNode(&(*trav)->rc, temp->data);
     }
 }
 
@@ -58,20 +77,23 @@ int main() {
     BST B = NULL;
     
     insert(&B, 10);
-    insert(&B, 4);
+    insert(&B, 5);
+    insert(&B, 15);
+    insert(&B, 3);
     insert(&B, 7);
     insert(&B, 12);
-    insert(&B, 1);
+    insert(&B, 18);
     
-    //inorder print
-    printf("After inserting: ");
+    printf("Inorder (Sorted): ");
     printTree(B);
+    printf("\n");
     
-    deleteNode(&B, 12);
+    printf("Deleting 15 (Node with 2 children)...\n");
+    deleteNode(&B, 15);
     
-    
-    //inorder print
-    printf("\nAfter deleting: ");
+    printf("Inorder After Delete: ");
     printTree(B);
+    printf("\n");
+    
     return 0;
 }

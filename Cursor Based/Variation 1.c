@@ -15,14 +15,10 @@ typedef struct {
 
 typedef int List;
 
-
 void initialize(VHeap *V) {
     for(int i = 0; i < MAX; i++) {
-        if(i < MAX-1) {
-            V->H[i].next = i+1;
-        } else {
-            V->H[i].next = -1;
-        }
+        // Set avail to list beginning and link cells
+        V->H[i].next = (i < MAX - 1) ? i + 1 : -1;
     }
     V->avail = 0;
 }
@@ -36,11 +32,13 @@ int allocSpace(VHeap* V) {
 }
 
 void deallocSpace(VHeap* V, int index) {
-    V->H[index].next = V->avail;
-    V->avail = index;
+    if(index != -1 && index < MAX) {
+        V->H[index].next = V->avail;
+        V->avail = index;
+    }
 }
 
-void insertFirst(int* L, VHeap* V, int elem) {
+void insertFirst(List* L, VHeap* V, int elem) {
     int newCell = allocSpace(V);
     if(newCell != -1) {
         V->H[newCell].elem = elem;
@@ -49,62 +47,127 @@ void insertFirst(int* L, VHeap* V, int elem) {
     }
 }
 
-void insertLast(int* L, VHeap* V, int elem) {
+void insertLast(List* L, VHeap* V, int elem) {
     int newCell = allocSpace(V);
     if(newCell != -1) {
         V->H[newCell].elem = elem;
         V->H[newCell].next = -1;
         
-        int *trav = L;
-        while(*trav != -1) {
-            trav = &V->H[*trav].next;
+        if (*L == -1) {
+            *L = newCell;
+        } else {
+            int trav = *L;
+            while(V->H[trav].next != -1) {
+                trav = V->H[trav].next;
+            }
+            V->H[trav].next = newCell;
         }
-        *trav = newCell;
     }
 }
 
-void delete(int *L, VHeap *V, int elem) {
+void insertPos(List* L, VHeap* V, int elem, int pos) {
+    if (pos < 0) return; // Invalid position
+
+    if (pos == 0) {
+        insertFirst(L, V, elem);
+        return;
+    }
+
+    int newCell = allocSpace(V);
+    if (newCell != -1) {
+        V->H[newCell].elem = elem;
+        
+        int trav = *L;
+        // Traverse to the cell before insertion point (index - 1)
+        for (int i = 0; i < pos - 1 && trav != -1; i++) {
+            trav = V->H[trav].next;
+        }
+
+        if (trav != -1) {
+            V->H[newCell].next = V->H[trav].next;
+            V->H[trav].next = newCell;
+        } else {
+            // Position out of bounds, decide to insert last or dealloc
+            // For now, let's dealloc to be safe or insertLast
+            deallocSpace(V, newCell); 
+        }
+    }
+}
+
+void insertSorted(List* L, VHeap* V, int elem) {
+    int newCell = allocSpace(V);
+    if(newCell != -1) {
+        V->H[newCell].elem = elem;
+        
+        // If list is empty or new elem is smaller than first
+        if (*L == -1 || elem < V->H[*L].elem) {
+            V->H[newCell].next = *L;
+            *L = newCell;
+        } else {
+            int trav = *L;
+            // Find insertion point
+            while (V->H[trav].next != -1 && V->H[V->H[trav].next].elem < elem) {
+                trav = V->H[trav].next;
+            }
+            V->H[newCell].next = V->H[trav].next;
+            V->H[trav].next = newCell;
+        }
+    }
+}
+
+void delete(List *L, VHeap *V, int elem) {
     int *trav = L;
     while(*trav != -1 && V->H[*trav].elem != elem) {
         trav = &V->H[*trav].next;
     }
-    int temp;
+    
     if(*trav != -1) {
-        temp = *trav;
+        int temp = *trav;
         *trav = V->H[*trav].next;
         deallocSpace(V, temp);
     }
 }
 
-void display(int L, VHeap V) {
-    int trav = L;
-    printf("List:\n");
-    while(trav != -1) {
-        printf("[%d] [%d]\n", trav, V.H[trav].elem);
-        trav = V.H[trav].next;
+void deleteAllOccurrence(List* L, VHeap *V, int elem) {
+    int *trav = L;
+    while (*trav != -1) {
+        if (V->H[*trav].elem == elem) {
+            int temp = *trav;
+            *trav = V->H[*trav].next;
+            deallocSpace(V, temp);
+        } else {
+            trav = &V->H[*trav].next;
+        }
     }
 }
 
+void display(List L, VHeap V) {
+    int trav = L;
+    printf("List: ");
+    while(trav != -1) {
+        printf("[%d] ", V.H[trav].elem);
+        trav = V.H[trav].next;
+    }
+    printf("\n");
+}
 
 int main() {
-    List L = -1;
     VHeap V;
+    List L = -1;
     
     initialize(&V);
-    insertFirst(&L, &V, 100);
-    insertLast(&L, &V, 60);
-    insertLast(&L, &V, 70);
-    insertFirst(&L, &V, 80);
-    insertFirst(&L, &V, 90);
-    insertLast(&L, &V, 50);
-    insertLast(&L, &V, 40);
     insertFirst(&L, &V, 10);
-    insertFirst(&L, &V, 20);
-    insertFirst(&L, &V, 30);
-    display(L, V);
-    delete(&L, &V, 10);
-    delete(&L, &V, 20);
+    insertLast(&L, &V, 30);
+    insertPos(&L, &V, 20, 1); // 10, 20, 30
+    insertSorted(&L, &V, 15); // 10, 15, 20, 30
+    insertFirst(&L, &V, 20);  // 20, 10, 15, 20, 30
+    
     display(L, V);
     
+    printf("Deleting all 20s...\n");
+    deleteAllOccurrence(&L, &V, 20);
     
+    display(L, V);
+    
+    return 0;
 }

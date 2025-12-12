@@ -11,24 +11,27 @@ typedef struct {
 
 Stack initialize() {
     Stack newStack;
-    newStack.top = MAX;
+    newStack.top = MAX; // Starts at the "end" of the array
     return newStack;
 }
 
 bool isFull(Stack *S) {
+    // If top reaches 0, the next decrement would be -1 (out of bounds), so it's full.
     if(S->top == 0)
         return true;
     return false;
 }
 
 bool isEmpty(Stack *S) {
-    if(S->top == MAX-1)
+    // If top is at MAX, no items have been pushed (items are at indices 0 to MAX-1)
+    if(S->top == MAX)
         return true;
     return false;
 }
 
 void push(Stack *S, int value) {
     if(isFull(S)) {
+        printf("Stack Overflow\n");
         return;
     }
     
@@ -38,17 +41,18 @@ void push(Stack *S, int value) {
 
 int pop(Stack *S) {
     if(isEmpty(S)) {
-        return 0;
+        printf("Stack Underflow\n");
+        return -1; // Return error value
     }
     
     int removed = S->items[S->top];
-    S->top++;
+    S->top++; // "Remove" by moving top back up
     return removed;
 }
 
 int peek(Stack *S) {
     if(isEmpty(S)) {
-        return 0;
+        return -1;
     }
     
     return S->items[S->top];
@@ -57,8 +61,10 @@ int peek(Stack *S) {
 
 void display(Stack *S) {
     if(isEmpty(S)) {
+        printf("Stack is empty.\n");
         return;
     }
+    // Iterate from the current top up to MAX-1
     for(int i = S->top; i < MAX; i++) {
         printf("%d\n", S->items[i]);
     }
@@ -74,14 +80,18 @@ int main() {
    push(&S, 2);
    push(&S, 5);
    push(&S, 4);
-   value = pop(&S);
-   printf("Popped: %d\n", value);
+   
+   printf("Stack after pushes:\n");
+   display(&S);
+
    value = pop(&S);
    printf("Popped: %d\n", value);
    
    value = peek(&S);
    printf("Current top value: %d\n", value);
    
-   printf("Stack: \n");
+   printf("Final Stack: \n");
    display(&S);
+   
+   return 0;
 }
